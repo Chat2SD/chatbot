@@ -1,0 +1,8 @@
+chainlit
+langchain
+langchain-community
+langchain_core
+langchain-openai
+requests
+pillow
+python-dotenv
