@@ -1,8 +1,10 @@
-__pycache__
-.env
+__pycache__/
+.idea/
 Mini-DALLE3/
 v1/
 v2/
+output/*
+.DS_Store
+.env
 test.py
 playsd.pem
-output/*
