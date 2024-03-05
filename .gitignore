@@ -1,7 +1,8 @@
+__pycache__
 .env
 Mini-DALLE3/
-prompts/
 v1/
 v2/
-public/
 test.py
+playsd.pem
+output/*
