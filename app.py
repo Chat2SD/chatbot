@@ -14,9 +14,31 @@ _ = load_dotenv(find_dotenv())
 
 @cl.on_chat_start
 async def on_chat_start():
+    app_user = cl.user_session.get("user")
     msg = cl.Message(content="Starting the bot...")
     await msg.send()
-    msg.content = "您好，我是 MUSE.ai，我可以幫助您生成圖像，請問您想要生成什麼圖像呢？"
+
+    llm = ChatOpenAI(model="gpt-3.5-turbo", temperature=0)
+
+    with open("prompts/prompt-v1-cn.txt") as f:
+        template_1 = f.read()
+
+    prompt_1 = PromptTemplate(template=template_1, input_variables=["chat_history", "human_input"])
+    memory = ConversationBufferWindowMemory(k=10, memory_key="chat_history", return_messages=True)
+    chain_1 = LLMChain(llm=llm, prompt=prompt_1, verbose=True, memory=memory)
+
+    with open("prompts/prompt-v2-cn.txt") as f:
+        template_2 = f.read()
+
+    prompt_2 = PromptTemplate(template=template_2, input_variables=["raw_prompt"])
+    chain_2 = LLMChain(llm=llm, prompt=prompt_2, verbose=True)
+    # output_parser = StrOutputParser()
+    # chain_2 = prompt_2 | llm | output_parser
+
+    cl.user_session.set("chain_1", chain_1)
+    cl.user_session.set("chain_2", chain_2)
+
+    msg.content = f"嗨 {app_user.identifier}，我是 MUSE.ai，我可以幫助您生成圖像，請問您想要生成什麼圖像呢？"
     await msg.update()
 
     settings = await cl.ChatSettings(
@@ -76,25 +98,17 @@ async def on_chat_start():
         ]
     ).send()
 
-    llm = ChatOpenAI(model="gpt-3.5-turbo", temperature=0)
 
-    with open("prompts/prompt-v1-cn.txt") as f:
-        template_1 = f.read()
-
-    prompt_1 = PromptTemplate(template=template_1, input_variables=["chat_history", "human_input"])
-    memory = ConversationBufferWindowMemory(k=10, memory_key="chat_history", return_messages=True)
-    chain_1 = LLMChain(llm=llm, prompt=prompt_1, verbose=True, memory=memory)
-
-    with open("prompts/prompt-v2-cn.txt") as f:
-        template_2 = f.read()
-
-    prompt_2 = PromptTemplate(template=template_2, input_variables=["raw_prompt"])
-    chain_2 = LLMChain(llm=llm, prompt=prompt_2, verbose=True)
-    # output_parser = StrOutputParser()
-    # chain_2 = prompt_2 | llm | output_parser
-
-    cl.user_session.set("chain_1", chain_1)
-    cl.user_session.set("chain_2", chain_2)
+# @cl.password_auth_callback
+# def auth_callback(username: str, password: str):
+#     # Fetch the user matching username from your database
+#     # and compare the hashed password with the value stored in the database
+#     if (username, password) == ("admin", "admin"):
+#         return cl.User(
+#             identifier="admin", metadata={"role": "admin", "provider": "credentials"}
+#         )
+#     else:
+#         return None
 
 
 @cl.on_message
